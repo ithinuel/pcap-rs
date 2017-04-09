@@ -1,0 +1,8 @@
+[package]
+name = "pcap"
+version = "0.1.0"
+authors = ["ithinuel <ithinuel@gmail.com>"]
+
+[dependencies]
+#nom = "^2.2"
+nom = { path = "../nom" }
