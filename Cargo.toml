@@ -1,8 +1,27 @@
 [package]
 name = "pcap"
-version = "0.1.0"
-authors = ["ithinuel <ithinuel@gmail.com>"]
+version = "1.0.0"
+authors = ["Wilfried Chauveau <ithinuel@gmail.com>"]
+description = "A parser for pcap files (and its file iterator)."
+license = "MIT"
+repository = "https://github.com/ithinuel/pcap-rs"
+readme = "README.md"
+#documentation = "http://rust.unhandledexpression.com/nom/"
+keywords = ["parser", "parser-combinators", "parsing", "bit", "pcap"]
+categories = ["parsing"]
+
+include = [
+  "LICENSE",
+  ".gitignore",
+  ".travis.yml",
+  "Cargo.toml",
+  "src/*.rs"
+]
+
+[features]
+core = ["nom/core"]
+default = []
 
 [dependencies]
-#nom = "^2.2"
-nom = { path = "../nom" }
+nom = { git = "https://github.com/ithinuel/nom.git" }
+#nom = { version = "^2.2" }
