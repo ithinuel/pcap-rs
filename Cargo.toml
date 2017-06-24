@@ -18,10 +18,5 @@ include = [
   "src/*.rs"
 ]
 
-[features]
-core = ["nom/core"]
-default = []
-
 [dependencies]
-nom = { git = "https://github.com/ithinuel/nom.git" }
-#nom = { version = "^2.2" }
+nom = { version = "^3.0" }
