@@ -9,7 +9,7 @@ extern crate nom;
 #[cfg(not(feature = "core"))]
 pub mod iter;
 
-use nom::{be_u32, Endianness};
+use nom::*;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -308,7 +308,6 @@ named_args!(pub parse_record(e: Endianness, nano_sec: bool)<Record>, do_parse!(
 
 #[cfg(test)]
 mod tests {
-    use nom::IResult;
     use super::*;
 
     #[test]
@@ -325,7 +324,7 @@ mod tests {
             nano_sec: false,
             endianness: Endianness::Big
         };
-        assert_eq!(parse_header(&i[..]), IResult::Done(&[10][..], h));
+        assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
     #[test]
     fn parse_header_le_usec() {
@@ -341,7 +340,7 @@ mod tests {
             nano_sec: false,
             endianness: Endianness::Little
         };
-        assert_eq!(parse_header(&i[..]), IResult::Done(&[10][..], h));
+        assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
 
     #[test]
@@ -358,7 +357,7 @@ mod tests {
             nano_sec: true,
             endianness: Endianness::Big
         };
-        assert_eq!(parse_header(&i[..]), IResult::Done(&[10][..], h));
+        assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
     #[test]
     fn parse_header_le_nsec() {
@@ -374,7 +373,7 @@ mod tests {
             nano_sec: true,
             endianness: Endianness::Little
         };
-        assert_eq!(parse_header(&i[..]), IResult::Done(&[10][..], h));
+        assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
 
     #[test]
@@ -387,7 +386,7 @@ mod tests {
             orig_len: 0,
             data: Vec::new()
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, false), IResult::Done(&[10][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Big, false), Ok((&[10][..], r)));
     }
     #[test]
     fn parse_record_be_some_orig_data_zero_incl() {
@@ -399,7 +398,7 @@ mod tests {
             orig_len: 3,
             data: Vec::new()
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), IResult::Done(&[10][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[10][..], r)));
     }
     #[test]
     fn parse_record_be_some_orig_data_parially_incl() {
@@ -411,7 +410,7 @@ mod tests {
             orig_len: 3,
             data: vec![10, 11]
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), IResult::Done(&[128][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[128][..], r)));
     }
     #[test]
     fn parse_record_be_all_data_incl() {
@@ -423,7 +422,7 @@ mod tests {
             orig_len: 3,
             data: vec![10, 11, 12]
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), IResult::Done(&[128][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[128][..], r)));
     }
 
     #[test]
@@ -436,7 +435,7 @@ mod tests {
             orig_len: 0,
             data: Vec::new()
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), IResult::Done(&[10][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[10][..], r)));
     }
     #[test]
     fn parse_record_le_some_orig_data_zero_incl() {
@@ -448,7 +447,7 @@ mod tests {
             orig_len: 3,
             data: Vec::new()
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), IResult::Done(&[10][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[10][..], r)));
     }
     #[test]
     fn parse_record_le_some_orig_data_parially_incl() {
@@ -460,7 +459,7 @@ mod tests {
             orig_len: 3,
             data: vec![10, 11]
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), IResult::Done(&[128][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[128][..], r)));
     }
     #[test]
     fn parse_record_le_all_data_incl() {
@@ -472,7 +471,7 @@ mod tests {
             orig_len: 3,
             data: vec![10, 11, 12]
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), IResult::Done(&[128][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[128][..], r)));
     }
     #[test]
     fn parse_record_le_all_data_incl_usec() {
@@ -484,6 +483,6 @@ mod tests {
             orig_len: 3,
             data: vec![10, 11, 12]
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, false), IResult::Done(&[128][..], r));
+        assert_eq!(parse_record(&i[..], Endianness::Little, false), Ok((&[128][..], r)));
     }
 }

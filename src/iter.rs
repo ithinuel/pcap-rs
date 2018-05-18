@@ -1,5 +1,5 @@
 use std::io::BufRead;
-use nom::{IResult, Endianness, Err};
+use nom::{Endianness, ErrorKind};
 use ::{Header, parse_header, Record, parse_record};
 
 #[derive(PartialEq)]
@@ -13,7 +13,7 @@ pub enum NextBlock {
 pub enum Block {
     Header(Header),
     Record(Record),
-    Error(Err<u32>)
+    Error(ErrorKind)
 }
 
 pub struct PcapIterator<T: BufRead> {
@@ -47,28 +47,28 @@ impl<T: BufRead> Iterator for PcapIterator<T> {
             match self.state {
                 NextBlock::Header => {
                     match parse_header(b) {
-                        IResult::Done(unparsed, header) => {
+                        Ok((unparsed, header)) => {
                             self.endianness = header.endianness;
                             self.nano_sec = header.nano_sec;
                             consume = b.len() - unparsed.len();
                             ret = Some(Block::Header(header));
                         },
-                        IResult::Error(e) => {
+                        Err(e) => {
                             self.state = NextBlock::None;
-                            ret = Some(Block::Error(e));
-                        }, _ => {}
+                            ret = Some(Block::Error(e.into_error_kind()));
+                        }
                     }
                 },
                 NextBlock::Record => {
                     match parse_record(b, self.endianness, self.nano_sec) {
-                        IResult::Done(unparsed, record) => {
+                        Ok((unparsed, record)) => {
                             consume = b.len() - unparsed.len();
                             ret = Some(Block::Record(record));
                         },
-                        IResult::Error(e) => {
+                        Err(e) => {
                             self.state = NextBlock::None;
-                            ret = Some(Block::Error(e))
-                        }, _ => {}
+                            ret = Some(Block::Error(e.into_error_kind()))
+                        }
                     }
                 }, NextBlock::None => {}
             }
