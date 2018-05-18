@@ -1,12 +1,12 @@
 [package]
 name = "pcap-rs"
-version = "1.0.1"
-authors = ["Wilfried Chauveau <ithinuel@gmail.com>"]
+version = "1.0.2"
+authors = ["Wilfried Chauveau <wilfried.chauveau@ithinuel.me>"]
 description = "A parser for pcap files (and its file iterator)."
 license = "MIT"
 repository = "https://github.com/ithinuel/pcap-rs"
 readme = "README.md"
-#documentation = "http://rust.unhandledexpression.com/nom/"
+documentation = "https://docs.rs/pcap-rs"
 keywords = ["parser", "parser-combinators", "parsing", "bit", "pcap"]
 categories = ["parsing"]
 
