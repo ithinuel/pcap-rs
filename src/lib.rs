@@ -121,7 +121,7 @@ pub enum LinkType {
     RDS,
     USB_DARWIN,
     SDLC,
-    UNKNOWN
+    UNKNOWN,
 }
 
 impl From<u32> for LinkType {
@@ -234,7 +234,7 @@ impl From<u32> for LinkType {
             265 => LinkType::RDS,
             266 => LinkType::USB_DARWIN,
             268 => LinkType::SDLC,
-            _ => LinkType::UNKNOWN
+            _ => LinkType::UNKNOWN,
         }
     }
 }
@@ -249,7 +249,7 @@ pub struct Header {
     pub snaplen: u32,
     pub network: LinkType,
     pub nano_sec: bool,
-    pub endianness: Endianness
+    pub endianness: Endianness,
 }
 
 #[derive(PartialEq, Debug)]
@@ -257,7 +257,7 @@ pub struct Record {
     pub ts_sec: u32,
     pub ts_nanosec: u32,
     pub orig_len: u32,
-    pub data: Vec<u8>
+    pub data: Vec<u8>,
 }
 
 named_args!(parse_header_e(e: Endianness, nsec: bool)<Header>,
@@ -322,7 +322,7 @@ mod tests {
             snaplen: 1,
             network: LinkType::ETHERNET,
             nano_sec: false,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
         assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
@@ -338,7 +338,7 @@ mod tests {
             snaplen: 1,
             network: LinkType::ETHERNET,
             nano_sec: false,
-            endianness: Endianness::Little
+            endianness: Endianness::Little,
         };
         assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
@@ -355,7 +355,7 @@ mod tests {
             snaplen: 1,
             network: LinkType::ETHERNET,
             nano_sec: true,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
         assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
@@ -371,7 +371,7 @@ mod tests {
             snaplen: 1,
             network: LinkType::ETHERNET,
             nano_sec: true,
-            endianness: Endianness::Little
+            endianness: Endianness::Little,
         };
         assert_eq!(parse_header(&i[..]), Ok((&[10][..], h)));
     }
@@ -384,9 +384,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 0,
             orig_len: 0,
-            data: Vec::new()
+            data: Vec::new(),
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, false), Ok((&[10][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Big, false),
+            Ok((&[10][..], r))
+        );
     }
     #[test]
     fn parse_record_be_some_orig_data_zero_incl() {
@@ -396,9 +399,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: Vec::new()
+            data: Vec::new(),
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[10][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Big, true),
+            Ok((&[10][..], r))
+        );
     }
     #[test]
     fn parse_record_be_some_orig_data_parially_incl() {
@@ -408,9 +414,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: vec![10, 11]
+            data: vec![10, 11],
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[128][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Big, true),
+            Ok((&[128][..], r))
+        );
     }
     #[test]
     fn parse_record_be_all_data_incl() {
@@ -420,9 +429,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: vec![10, 11, 12]
+            data: vec![10, 11, 12],
         };
-        assert_eq!(parse_record(&i[..], Endianness::Big, true), Ok((&[128][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Big, true),
+            Ok((&[128][..], r))
+        );
     }
 
     #[test]
@@ -433,9 +445,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 0,
             orig_len: 0,
-            data: Vec::new()
+            data: Vec::new(),
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[10][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Little, true),
+            Ok((&[10][..], r))
+        );
     }
     #[test]
     fn parse_record_le_some_orig_data_zero_incl() {
@@ -445,9 +460,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: Vec::new()
+            data: Vec::new(),
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[10][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Little, true),
+            Ok((&[10][..], r))
+        );
     }
     #[test]
     fn parse_record_le_some_orig_data_parially_incl() {
@@ -457,9 +475,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: vec![10, 11]
+            data: vec![10, 11],
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[128][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Little, true),
+            Ok((&[128][..], r))
+        );
     }
     #[test]
     fn parse_record_le_all_data_incl() {
@@ -469,9 +490,12 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2,
             orig_len: 3,
-            data: vec![10, 11, 12]
+            data: vec![10, 11, 12],
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, true), Ok((&[128][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Little, true),
+            Ok((&[128][..], r))
+        );
     }
     #[test]
     fn parse_record_le_all_data_incl_usec() {
@@ -481,8 +505,11 @@ mod tests {
             ts_sec: 1,
             ts_nanosec: 2000,
             orig_len: 3,
-            data: vec![10, 11, 12]
+            data: vec![10, 11, 12],
         };
-        assert_eq!(parse_record(&i[..], Endianness::Little, false), Ok((&[128][..], r)));
+        assert_eq!(
+            parse_record(&i[..], Endianness::Little, false),
+            Ok((&[128][..], r))
+        );
     }
 }

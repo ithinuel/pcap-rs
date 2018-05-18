@@ -1,9 +1,9 @@
 extern crate pcap_rs;
 
+use pcap_rs::iter::PcapIterator;
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
-use pcap_rs::iter::PcapIterator;
 
 fn main() {
     let args: Vec<_> = env::args().collect();

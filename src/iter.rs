@@ -1,26 +1,26 @@
-use std::io::BufRead;
 use nom::{Endianness, ErrorKind};
-use ::{Header, parse_header, Record, parse_record};
+use std::io::BufRead;
+use {parse_header, parse_record, Header, Record};
 
 #[derive(PartialEq)]
 pub enum NextBlock {
     Header,
     Record,
-    None
+    None,
 }
 
 #[derive(PartialEq, Debug)]
 pub enum Block {
     Header(Header),
     Record(Record),
-    Error(ErrorKind)
+    Error(ErrorKind),
 }
 
 pub struct PcapIterator<T: BufRead> {
     state: NextBlock,
     reader: T,
     endianness: Endianness,
-    nano_sec: bool
+    nano_sec: bool,
 }
 impl<T: BufRead> PcapIterator<T> {
     pub fn new(stream: T) -> PcapIterator<T> {
@@ -28,7 +28,7 @@ impl<T: BufRead> PcapIterator<T> {
             state: NextBlock::Header,
             reader: stream,
             endianness: Endianness::Big,
-            nano_sec: false
+            nano_sec: false,
         }
     }
 }
@@ -40,37 +40,34 @@ impl<T: BufRead> Iterator for PcapIterator<T> {
         let mut consume = 0;
 
         if self.state == NextBlock::None {
-            return None
+            return None;
         }
 
         if let Ok(b) = self.reader.fill_buf() {
             match self.state {
-                NextBlock::Header => {
-                    match parse_header(b) {
-                        Ok((unparsed, header)) => {
-                            self.endianness = header.endianness;
-                            self.nano_sec = header.nano_sec;
-                            consume = b.len() - unparsed.len();
-                            ret = Some(Block::Header(header));
-                        },
-                        Err(e) => {
-                            self.state = NextBlock::None;
-                            ret = Some(Block::Error(e.into_error_kind()));
-                        }
+                NextBlock::Header => match parse_header(b) {
+                    Ok((unparsed, header)) => {
+                        self.endianness = header.endianness;
+                        self.nano_sec = header.nano_sec;
+                        consume = b.len() - unparsed.len();
+                        ret = Some(Block::Header(header));
+                    }
+                    Err(e) => {
+                        self.state = NextBlock::None;
+                        ret = Some(Block::Error(e.into_error_kind()));
                     }
                 },
-                NextBlock::Record => {
-                    match parse_record(b, self.endianness, self.nano_sec) {
-                        Ok((unparsed, record)) => {
-                            consume = b.len() - unparsed.len();
-                            ret = Some(Block::Record(record));
-                        },
-                        Err(e) => {
-                            self.state = NextBlock::None;
-                            ret = Some(Block::Error(e.into_error_kind()))
-                        }
+                NextBlock::Record => match parse_record(b, self.endianness, self.nano_sec) {
+                    Ok((unparsed, record)) => {
+                        consume = b.len() - unparsed.len();
+                        ret = Some(Block::Record(record));
                     }
-                }, NextBlock::None => {}
+                    Err(e) => {
+                        self.state = NextBlock::None;
+                        ret = Some(Block::Error(e.into_error_kind()))
+                    }
+                },
+                NextBlock::None => {}
             }
         }
 
