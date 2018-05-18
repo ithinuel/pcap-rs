@@ -17,6 +17,25 @@ include = [
   "Cargo.toml",
   "src/*.rs"
 ]
+[badges]
+# Travis CI: `repository` in format "<user>/<project>" is required.
+# `branch` is optional; default is `master`
+travis-ci = { repository = "ithinuel/pcap-rs", branch = "master" }
+
+# Coveralls: `repository` is required. `branch` is optional; default is `master`
+# `service` is optional; valid values are `github` (default) and `bitbucket`.
+coveralls = { repository = "ithinuel/pcap-rs", branch = "master", service = "github" }
+
+# Is it maintained resolution time: `repository` is required.
+is-it-maintained-issue-resolution = { repository = "ithinuel/pcap-rs" }
+
+# Is it maintained percentage of open issues: `repository` is required.
+is-it-maintained-open-issues = { repository = "ithinuel/pcap-rs" }
+
+# Maintenance: `status` is required Available options are `actively-developed`,
+# `passively-maintained`, `as-is`, `none`, `experimental`, `looking-for-maintainer`
+# and `deprecated`.
+maintenance = { status = "passively-maintained" }
 
 [dependencies]
 nom = { version = "^4.0" }
