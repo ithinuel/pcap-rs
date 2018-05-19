@@ -1,6 +1,6 @@
 [package]
 name = "pcap-rs"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["Wilfried Chauveau <wilfried.chauveau@ithinuel.me>"]
 description = "A parser for pcap files (and its file iterator)."
 license = "MIT"
