@@ -12,7 +12,7 @@ fn main() {
         return;
     }
 
-    for path in args.iter() {
+    for path in args.iter().skip(1) {
         let f = File::open(path).unwrap();
 
         for b in PcapIterator::new(BufReader::new(f)) {
