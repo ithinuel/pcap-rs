@@ -538,4 +538,31 @@ mod tests {
             Ok((&[128][..], r))
         );
     }
+
+    #[test]
+    fn parse_all_link_type() {
+        for j in 0..270u32 {
+            let linktype = LinkType::from(j);
+            if let LinkType::UNKNOWN = linktype {
+                continue;
+            }
+
+            let mut i = b"\xa1\xb2\xc3\xd4\x00\x02\x00\x04\xFF\xFF\xFF\xFF\
+                      \x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00".to_vec();
+            i[22] = (j >> 8) as u8;
+            i[23] = j as u8;
+
+            let h = Header {
+                major: 2,
+                minor: 4,
+                this_zone: -1,
+                sigfigs: 1,
+                snaplen: 1,
+                network: linktype,
+                nano_sec: false,
+                endianness: Endianness::Big,
+            };
+            assert_eq!(parse_header(&i[..]), Ok((&[][..], h)));
+        }
+    }
 }
