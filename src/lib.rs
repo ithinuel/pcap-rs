@@ -1,5 +1,10 @@
 #![cfg_attr(feature = "core", feature(no_std))]
 
+//! This crate provides simple functions to parse pcap files.
+//!
+//! This implementation is based on the documentation available on wireshark's
+//! [wiki](https://wiki.wireshark.org/Development/LibpcapFileFormat).
+
 #[cfg(feature = "core")]
 extern crate collections;
 
@@ -11,6 +16,7 @@ pub mod iter;
 
 use nom::*;
 
+/// Enumerates all frame format supported by pcap.
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LinkType {
@@ -239,19 +245,33 @@ impl From<u32> for LinkType {
     }
 }
 
-//
+/// Header of the pcap file.
+///
+/// The type of frame contained in the records is described by the field `network`.
 #[derive(PartialEq, Debug)]
 pub struct Header {
+    /// Major version of this file format.
     pub major: u16,
+    /// Minor version of this file format.
     pub minor: u16,
+    /// The correction time in seconds between GMT (UTC) and the local timezone of the following
+    /// packet header timestamps.
+    ///
+    /// **Examples**: If the timestamps are in GMT (UTC), `this_zone` is simply 0. If the timestamps are
+    /// in Central European time (Amsterdam, Berlin, ...) which is GMT + 1:00, `this_zone` must be
+    /// -3600. In practice, time stamps are always in GMT, so `this_zone` is always 0.
     pub this_zone: i32,
+    /// In theory, the accuracy of time stamps in the capture; in practice, all tools set it to 0.
     pub sigfigs: u32,
+    /// Maximum length of a captured packet.
+    /// If the initial packet is bigger than this value it will be truncated.
     pub snaplen: u32,
     pub network: LinkType,
     pub nano_sec: bool,
     pub endianness: Endianness,
 }
 
+/// A single Record in the file.
 #[derive(PartialEq, Debug)]
 pub struct Record {
     pub ts_sec: u32,
@@ -269,7 +289,7 @@ named_args!(parse_header_e(e: Endianness, nsec: bool)<Header>,
         snaplen: u32!(e) >>
         network: verify!(
             map!(u32!(e), LinkType::from),
-            |val:LinkType| { val != LinkType::UNKNOWN}
+            |val:LinkType| { val != LinkType::UNKNOWN }
         ) >>
         (Header {
             major: major,
@@ -284,7 +304,13 @@ named_args!(parse_header_e(e: Endianness, nsec: bool)<Header>,
     )
 );
 
-named!(pub parse_header<Header>, switch!(be_u32,
+named_attr!(
+/// Parses a header.
+///
+/// This is always the first item of the file. This amongst other information extracts the
+/// endianness and whether the time is expressed in micro or nano-second from the `magic number`™ .
+#[doc],
+pub parse_header<Header>, switch!(be_u32,
     0xa1b2c3d4 => call!(parse_header_e, Endianness::Big, false)    | // straight sec
     0xd4c3b2a1 => call!(parse_header_e, Endianness::Little, false) | // reverse  sec
     0xa1b23c4d => call!(parse_header_e, Endianness::Big, true)     | // straight usec

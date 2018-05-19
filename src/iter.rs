@@ -1,23 +1,27 @@
+//! A nice and simple iterator over the file.
 use nom::{Endianness, ErrorKind};
 use std::io::BufRead;
 use {parse_header, parse_record, Header, Record};
 
-#[derive(PartialEq)]
-pub enum NextBlock {
-    Header,
-    Record,
-    None,
-}
-
+/// Represents an entry in the file.
 #[derive(PartialEq, Debug)]
 pub enum Block {
+    /// Header of the file.
+    ///
+    /// This type of entry occurs only once at the beginning of each file.
     Header(Header),
+    /// Packet record.
+    ///
+    /// This type of entry occurs until the end of the file is reached.
     Record(Record),
+
+    /// Parsing error.
     Error(ErrorKind),
 }
 
+/// Iterates over a BufRead.
 pub struct PcapIterator<T: BufRead> {
-    state: NextBlock,
+    first_block: bool,
     reader: T,
     endianness: Endianness,
     nano_sec: bool,
@@ -25,7 +29,7 @@ pub struct PcapIterator<T: BufRead> {
 impl<T: BufRead> PcapIterator<T> {
     pub fn new(stream: T) -> PcapIterator<T> {
         PcapIterator {
-            state: NextBlock::Header,
+            first_block: true,
             reader: stream,
             endianness: Endianness::Big,
             nano_sec: false,
@@ -36,45 +40,40 @@ impl<T: BufRead> PcapIterator<T> {
 impl<T: BufRead> Iterator for PcapIterator<T> {
     type Item = Block;
     fn next(&mut self) -> Option<Block> {
-        let mut ret = None;
-        let mut consume = 0;
+        // these are required to avoid borrowing self inside the first closure while it is still
+        // mutable borrowed by `self.read.fill_buf()`.
+        let first_block = self.first_block;
+        let endianness = self.endianness;
+        let nano_sec = self.nano_sec;
 
-        if self.state == NextBlock::None {
-            return None;
-        }
-
-        if let Ok(b) = self.reader.fill_buf() {
-            match self.state {
-                NextBlock::Header => match parse_header(b) {
-                    Ok((unparsed, header)) => {
-                        self.endianness = header.endianness;
-                        self.nano_sec = header.nano_sec;
-                        consume = b.len() - unparsed.len();
-                        ret = Some(Block::Header(header));
-                    }
-                    Err(e) => {
-                        self.state = NextBlock::None;
-                        ret = Some(Block::Error(e.into_error_kind()));
-                    }
-                },
-                NextBlock::Record => match parse_record(b, self.endianness, self.nano_sec) {
-                    Ok((unparsed, record)) => {
-                        consume = b.len() - unparsed.len();
-                        ret = Some(Block::Record(record));
-                    }
-                    Err(e) => {
-                        self.state = NextBlock::None;
-                        ret = Some(Block::Error(e.into_error_kind()))
-                    }
-                },
-                NextBlock::None => {}
+        self.reader.fill_buf().and_then(|b| {
+            (if first_block {
+                parse_header(b).and_then(|(u, h)| {
+                    Ok(Some((b.len()-u.len(), Block::Header(h))))
+                })
+            } else {
+                parse_record(b, endianness, nano_sec).and_then(|(u, r)| {
+                    Ok(Some((b.len()-u.len(), Block::Record(r))))
+                })
+            }).or_else(|e| {
+                let e = e.into_error_kind();
+                if let ErrorKind::Complete = e {
+                    Ok(None)
+                } else {
+                    Ok(Some((0, Block::Error(e))))
+                }
+            })
+        }).unwrap_or(None)
+        .and_then(|(c, block)| {
+            self.first_block = false;
+            if c != 0 {
+                self.reader.consume(c);
             }
-        }
-
-        if consume != 0 {
-            self.state = NextBlock::Record;
-            self.reader.consume(consume);
-        }
-        ret
+            if let Block::Header(ref h) = block {
+                self.endianness = h.endianness;
+                self.nano_sec = h.nano_sec;
+            }
+            Some(block)
+        })
     }
 }
