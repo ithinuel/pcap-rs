@@ -8,13 +8,14 @@
 #[cfg(feature = "core")]
 extern crate collections;
 
-#[macro_use]
-extern crate nom;
-
 #[cfg(not(feature = "core"))]
 pub mod iter;
 
-use nom::*;
+use nom::{
+    call, do_parse, i32, map, named_args, named_attr,
+    number::{streaming::be_u32, Endianness},
+    switch, take, u16, u32, verify,
+};
 
 /// Enumerates all frame format supported by pcap.
 #[allow(non_camel_case_types)]
@@ -289,7 +290,7 @@ named_args!(parse_header_e(e: Endianness, nsec: bool)<Header>,
         snaplen: u32!(e) >>
         network: verify!(
             map!(u32!(e), LinkType::from),
-            |val:LinkType| { val != LinkType::UNKNOWN }
+            |val:&LinkType| { *val != LinkType::UNKNOWN }
         ) >>
         (Header {
             major: major,
@@ -309,7 +310,7 @@ named_attr!(
 ///
 /// This is always the first item of the file. This amongst other information extracts the
 /// endianness and whether the time is expressed in micro or nano-second from the `magic number`™ .
-#[doc],
+#[doc=""],
 pub parse_header<Header>, switch!(be_u32,
     0xa1b2c3d4 => call!(parse_header_e, Endianness::Big, false)    | // straight sec
     0xd4c3b2a1 => call!(parse_header_e, Endianness::Little, false) | // reverse  sec
@@ -548,7 +549,8 @@ mod tests {
             }
 
             let mut i = b"\xa1\xb2\xc3\xd4\x00\x02\x00\x04\xFF\xFF\xFF\xFF\
-                      \x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00".to_vec();
+                      \x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+                .to_vec();
             i[22] = (j >> 8) as u8;
             i[23] = j as u8;
 

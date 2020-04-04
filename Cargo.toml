@@ -9,6 +9,7 @@ readme = "README.md"
 documentation = "https://docs.rs/pcap-rs"
 keywords = ["parser", "parser-combinators", "parsing", "bit", "pcap"]
 categories = ["parsing"]
+edition = "2018"
 
 include = [
   "LICENSE",
@@ -38,4 +39,4 @@ is-it-maintained-open-issues = { repository = "ithinuel/pcap-rs" }
 maintenance = { status = "passively-maintained" }
 
 [dependencies]
-nom = { version = "^4.0" }
+nom = { version = "^5" }
