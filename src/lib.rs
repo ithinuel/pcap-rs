@@ -19,6 +19,7 @@ use nom::{
 
 /// Enumerates all frame format supported by pcap.
 #[allow(non_camel_case_types)]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LinkType {
     NULL,
@@ -293,12 +294,12 @@ named_args!(parse_header_e(e: Endianness, nsec: bool)<Header>,
             |val:&LinkType| { *val != LinkType::UNKNOWN }
         ) >>
         (Header {
-            major: major,
-            minor: minor,
-            this_zone: this_zone,
-            sigfigs: sigfigs,
-            snaplen: snaplen,
-            network: network,
+            major,
+            minor,
+            this_zone,
+            sigfigs,
+            snaplen,
+            network,
             nano_sec: nsec,
             endianness: e
         })
@@ -326,9 +327,9 @@ named_args!(pub parse_record(e: Endianness, nano_sec: bool)<Record>, do_parse!(
     data: take!(incl_len) >>
 
     (Record {
-        ts_sec: ts_sec,
+        ts_sec,
         ts_nanosec: if nano_sec {ts_subsec} else {ts_subsec*1000},
-        orig_len: orig_len,
+        orig_len,
         data: Vec::from(data)
     })
 ));
