@@ -50,11 +50,10 @@ impl<T: BufRead> Iterator for PcapIterator<T> {
             .fill_buf()
             .and_then(|b| {
                 (if first_block {
-                    parse_header(b)
-                        .and_then(|(u, h)| Ok(Some((b.len() - u.len(), Block::Header(h)))))
+                    parse_header(b).map(|(u, h)| Some((b.len() - u.len(), Block::Header(h))))
                 } else {
                     parse_record(b, endianness, nano_sec)
-                        .and_then(|(u, r)| Ok(Some((b.len() - u.len(), Block::Record(r)))))
+                        .map(|(u, r)| Some((b.len() - u.len(), Block::Record(r))))
                 })
                 .or_else(|e| match e {
                     Err::Incomplete(_)
@@ -64,7 +63,7 @@ impl<T: BufRead> Iterator for PcapIterator<T> {
                 })
             })
             .unwrap_or(None)
-            .and_then(|(c, block)| {
+            .map(|(c, block)| {
                 self.first_block = false;
                 if c != 0 {
                     self.reader.consume(c);
@@ -73,7 +72,7 @@ impl<T: BufRead> Iterator for PcapIterator<T> {
                     self.endianness = h.endianness;
                     self.nano_sec = h.nano_sec;
                 }
-                Some(block)
+                block
             })
     }
 }
