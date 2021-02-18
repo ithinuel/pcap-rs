@@ -13,9 +13,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          components: clippy, rustfmt
+          override: true
     - uses: actions/checkout@v2
-    - run: rustup update
-    - run: rustup component add clippy rustfmt
     - name: Check fmt
       run: cargo fmt -- --check
     - uses: actions-rs/clippy-check@v1
